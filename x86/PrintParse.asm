@@ -74,7 +74,7 @@ PrintFancy:
                 mov   r12d, eax
                 cmp   al, 'a'
                  je   .Alignment
-if VERBOSE > 0 | DEBUG > 0
+if VERBOSE > 0
                 cmp   al, 'p'
                  je   .Position
 end if
@@ -136,7 +136,7 @@ end if
               stosb
                 jmp  .l2
 
-if VERBOSE > 0 | DEBUG > 0
+if VERBOSE > 0
 .Position:
                 mov   qword[rbp+Pos.state], rbx
                call   Position_PrintFen
@@ -550,10 +550,6 @@ ReadLine:
             add  r12d, 1
             mov  byte[r15 + rbx], al
             add  ebx, 1
-if VERSION_OS = 'W'
-            cmp  al, 0x0d
-             je  .ReadLoop
-end if
             cmp  al, ' '
             jae  .ReadLoop
             mov  byte[r15 + rbx - 1], 10

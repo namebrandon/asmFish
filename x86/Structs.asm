@@ -50,21 +50,18 @@ struct PawnEntry	; 80 bytes
  weakUnopposed  rb 1
 ends
 
-struct HistoryStats     ; 32 KiB
+struct HistoryStats
  rd 2*64*64
 ends
 
-struct CapturePieceToHistory    ; 32 KiB
- rd 16*64*8
-ends
-
-struct MoveStats        ; 4 KiB
+struct MoveStats
  rd 16*64
 ends
 
 struct CounterMoveHistoryStats
  rd 16*64*16*64
 ends
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ; evaluation structures
@@ -146,7 +143,6 @@ end if
  counterMoveHistory  rq 1	 ; these structs hold addresses
  history 	rq 1		 ; of tables used by the search
  counterMoves	rq 1		 ;
- captureHistory rq 1
  materialTable	rq 1		 ;
  pawnTable	rq 1		 ;
  rootMovesVec	RootMovesVec	 ;
@@ -258,20 +254,15 @@ struct Options
  syzygy50MoveRule rb 1	    ; bool 0 or -1
  syzygyProbeDepth rd 1
  syzygyProbeLimit rd 1
+if USE_VARIETY = 1
+ varietyMod   rd 1
+ varietyBound rd 1
+              rq 1
+end if
  hashPath	rq 1
  hashPathSizeB	rq 1
  hashPathBuffer rq 14
 ends
-
-struct Variety
- a_float   rd 4
- b_float   rd 4
- clamp     rd 4
- a_bound   rd 1
- b_bound   rd 1
-           rd 2
-ends
-
 
 
 struct Weakness
@@ -372,18 +363,16 @@ struct Thread
  threadHandle	 ThreadHandle
  numaNode	 rq 1
  bestMoveChanges rq 1
- previousTimeReduction rq 1
-                 rq 1
  PVIdx		 rd 1
  previousScore	 rd 1
  completedDepth  rd 1
  callsCnt	 rd 1
  resetCnt	 rd 1
- extra		 rd 1
+		 rd 1
  searching	  rb 1
  exit		  rb 1
  failedLow	  rb 1
-          rb 1
+ easyMovePlayed   rb 1
 		  rb 1
 		  rb 1
  selDepth         rb 1
@@ -391,7 +380,8 @@ struct Thread
  nodes		rq 1
  tbHits 	rq 1
 if USE_VARIETY = 1
- randSeed     rq 2
+ randSeed     rq 1
+              rq 1
 end if
  idx		rd 1
  rootDepth	rd 1
@@ -515,6 +505,43 @@ struct Book
         rd 1
 ends
 
+struct Brain
+ startOrg   rq 1
+ enderOrg   rq 1
+ currentOrg  rq 1
+ start	     rq 1
+ ender	    rq 1
+ file_	    rq 1
+ path	      rq 1
+ entriesCount rd 1
+ visitedCount rd 1
+ depthRecordBuffer rq 1
+		   rq 1
+
+ depthRecord   rd 1
+	       rd 1
+ maxDepth      rd 1
+ timer	       rb 1
+	       rb 3
+
+ends
+
+struct BrainEntry
+ brainKey   rq 1  ; bits 0-47 contain bits 16-63 of sf key
+	    rb 1
+ brainMove0 rb 1
+ brainMove1 rb 1
+	    rb 1
+ visitedDepth rd 1
+ polyglotKey	rq 1
+ polyglotMove0	rw 1
+ polyglotMove1	rw 1
+		rd 1
+ends
+if sizeof.BrainEntry <> 32
+ err
+end if
+
 struct PolyglotEntry
  key	rq 1
  move	rw 1
@@ -537,6 +564,5 @@ struct ExtBookMove
  move   rd 1
  weight rd 1
  total  rd 1
- repetition rd 1
 ends
 

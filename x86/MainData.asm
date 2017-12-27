@@ -20,7 +20,6 @@ constd:
 ._0p505	 dq 0.505
 ._1p0	 dq 1.0
 ._628p0	 dq 628.0
-._1p3    dq 1.3
 
 if CPU_HAS_POPCNT = 0
  Mask55    dq 0x5555555555555555
@@ -100,7 +99,7 @@ if USE_WEAKNESS
 end if
 
 if USE_VARIETY
-    db 'option name Variety type spin default 0 min 0 max 100'
+    db 'option name Variety type spin default 0 min 0 max 40'
     NewLineData
 end if
 
@@ -139,7 +138,7 @@ sz_format_perft1:
 sz_format_bench1:
         db '*** bench hash %u0 threads %u1 depth %u2 ***%n', 0
 sz_format_bench2:
-        db '%U0: %a8nodes: %U1 %a32%U2 knps %a48%U3 ms%n', 0
+        db '%U0: %a8nodes: %U1 %a32%U2 knps%n', 0
 sz_format_perft2:
 sz_format_bench3:
         db '===========================%n'

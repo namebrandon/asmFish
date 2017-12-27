@@ -1,3 +1,4 @@
+
 macro apply_bonus address, bonus32, absbonus, denominator
 		mov   eax, dword[address]
 	       imul   eax, absbonus
@@ -18,6 +19,8 @@ macro apply_bonus address, bonus32, absbonus, denominator
 ;SD_String "|"
 
 end macro
+
+
 
 macro GetNextMove
 	; in: rbp Position
@@ -251,28 +254,23 @@ end macro
 
 macro ScoreCaptures start, ender
   local WhileLoop, Done
-            mov  r8, qword[rbp + Pos.captureHistory]
-            cmp  start, ender
-            jae  Done
+
+	       imul   ecx, dword[rbp+Pos.sideToMove], 7
+		cmp   start, ender
+		jae   Done
 WhileLoop:
-            mov  eax, dword[start + ExtMove.move]
-            mov  ecx, dword[start + ExtMove.move]
-            shr  ecx, 6
-            and  eax, 63
-            and  ecx, 63
-            lea  start, [start + sizeof.ExtMove]
-          movzx  ecx, byte[rbp + Pos.board + rcx]
-            shl  ecx, 6
-            add  ecx, eax
-          movzx  eax, byte[rbp + Pos.board + rax]
-            mov  edx, dword[PieceValue_MG + 4*rax]
-            and  eax, 7
-            shl  ecx, 3
-            add  ecx, eax
-            add  edx, dword[r8 + 4*rcx]
-            mov  dword[start-sizeof.ExtMove+ExtMove.value], edx
-            cmp  start, ender
-             jb  WhileLoop
+		mov   eax, dword[start+ExtMove.move]
+		and   eax, 63
+		lea   start, [start+sizeof.ExtMove]
+	      movzx   edx, byte[rbp+Pos.board+rax]
+		mov   edx, dword[PieceValue_MG+4*rdx]
+		shr   eax, 3
+		xor   eax, ecx
+	       imul   eax, eax, 200
+		sub   edx, eax
+		mov   dword[start-sizeof.ExtMove+ExtMove.value], edx
+		cmp   start, ender
+		 jb   WhileLoop
 Done:
 end macro
 

@@ -228,8 +228,6 @@ if USE_SYZYGY
 	      cmovg   ecx, edx
 		mov   dword[Tablebase_Cardinality], eax
 		mov   dword[Tablebase_ProbeDepth], ecx
-		cmp   dword[options.multiPV], 1
-		jne   .check_tb_ret
 	; filter moves
 		mov   rcx, qword[rbp+Pos.typeBB+8*White]
 		 or   rcx, qword[rbp+Pos.typeBB+8*Black]

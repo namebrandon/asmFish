@@ -1,7 +1,3 @@
-FASMG_INC = '../'
-include string 'format.inc' shl (8*lengthof FASMG_INC) + FASMG_INC
-
-
 include 'format/format.inc'
 format ELF64
 
@@ -21,7 +17,7 @@ main:
            call  exit
 
 section '.data' writeable align 64
-
+db '12345'
 Message:
     db 'Hello World!', 10
 MessageEnd:

@@ -62,6 +62,13 @@ Thread_Create:
                 mov   dword[rbx+Thread.callsCnt], eax   ;  ThreadPool_StartThinking
 		mov   dword[rbx+Thread.idx], esi
 		mov   qword[rbx+Thread.numaNode], rdi
+if USE_VARIETY = 1
+               call   Os_GetTime
+                xor   rax, rdx
+                 or   rax, 1
+mov rax, 1
+                mov   qword[rbx+Thread.randSeed], rax
+end if
 
     ; per thread memory allocations
 	; create sync objects
@@ -84,13 +91,11 @@ Thread_Create:
 	       call   RootMovesVec_Create
 
 	; allocate stats
-		mov   ecx, sizeof.HistoryStats + sizeof.CapturePieceToHistory + sizeof.MoveStats
+		mov   ecx, sizeof.HistoryStats + sizeof.MoveStats
 		mov   edx, r15d
 	       call   Os_VirtualAllocNuma
 		mov   qword[rbx+Thread.rootPos.history], rax
 		add   rax, sizeof.HistoryStats
-		mov   qword[rbx+Thread.rootPos.captureHistory], rax
-		add   rax, sizeof.CapturePieceToHistory
 		mov   qword[rbx+Thread.rootPos.counterMoves], rax
 
 	; allocate pawn hash
@@ -118,10 +123,10 @@ Thread_Create:
 		mov   ecx, sizeof.CounterMoveHistoryStats
 		mov   edx, r15d
 	       test   rax, rax
-		jnz   @1f
+		jnz   @f
 	       call   Os_VirtualAllocNuma
 		mov   qword[r14+NumaNode.cmhTable], rax
-	@1:	
+	@@:	
                 mov   qword[rbx+Thread.rootPos.counterMoveHistory], rax
 
 	; start the thread and wait for it to enter the idle loop
@@ -189,7 +194,7 @@ Thread_Delete:
 
 	; free stats
 		mov   rcx, qword[rbx+Thread.rootPos.history]
-		mov   edx, sizeof.HistoryStats + sizeof.CapturePieceToHistory + sizeof.MoveStats
+		mov   edx, sizeof.HistoryStats + sizeof.MoveStats
 	       call   Os_VirtualFree
 		xor   eax, eax
 		mov   qword[rbx+Thread.rootPos.history], rax

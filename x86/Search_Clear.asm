@@ -14,13 +14,11 @@ Search_Clear:
 
 	; mainThread.previousScore is used in the time management part of idloop
 	;  +VALUE_INFINITE causes us to think alot on the first move
-        mov   rax, qword 1.0
 		mov   dword[rbx+Thread.previousScore], VALUE_INFINITE
-		mov   qword[rbx+Thread.previousTimeReduction], rax
 
 	; clear thread stats
 		mov   rdi, qword[rbx+Thread.rootPos.history]
-		mov   ecx, (sizeof.HistoryStats + sizeof.CapturePieceToHistory + sizeof.MoveStats)/4
+		mov   ecx, (sizeof.HistoryStats + sizeof.MoveStats)/4
 		xor   eax, eax
 	  rep stosd
 

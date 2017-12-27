@@ -18,6 +18,10 @@ Options_Init:
             mov  rax, '<empty>'
             mov  qword[rdx + Options.hashPath], rcx
             mov  qword[rcx], rax
+if USE_VARIETY
+            mov  dword[rdx + Options.varietyMod], 1
+            mov  dword[rdx + Options.varietyBound], 0
+end if
             mov  qword[ioBuffer + IOBuffer.log], -1
             ret
 
@@ -350,6 +354,7 @@ UciSync:
 ;;;;;;;
 
 UciGo:
+xor ebx, ebx
             mov  al, byte[options.changed]
            test  al, al
              jz  .ok
@@ -482,6 +487,8 @@ UciGo:
 ;;;;;;;;;;;;
 
 UciPosition:
+
+xor ebx, ebx
            call  SkipSpaces
             cmp  byte[rsi], ' '
              jb  UciUnknown
@@ -1042,7 +1049,7 @@ if USE_WEAKNESS = 1
             jmp  UciGetInput
 .UciElo:
            call  ParseInteger
-    ClampSigned  eax, 0, 3300
+  ClampUnsigned  eax, 0, 3300
             mov  ecx, eax
            call  Weakness_SetElo
             jmp  UciGetInput
@@ -1051,34 +1058,15 @@ end if
 if USE_VARIETY = 1
 .Variety:
            call  ParseInteger
-    ClampSigned  eax, 0, 100
-            lea  rdx, [variety]
-        _vxorps  xmm0, xmm0, xmm0
-       _vmovaps  dqword[rdx + Variety.a_float], xmm0
-       _vmovaps  dqword[rdx + Variety.b_float], xmm0
-       _vmovaps  dqword[rdx + Variety.clamp], xmm0
-       _vmovaps  dqword[rdx + Variety.a_bound], xmm0    ; clear b_bound also
-           test  eax, eax
-             jz  UciGetInput
-     _vcvtsi2ss  xmm0, xmm0, eax
-       _vmovaps  xmm1, dqword[.two]
-       _vmovaps  xmm2, dqword[.epsilon]
-    _vpunpckldq  xmm0, xmm0, xmm0
-    _vpunpckldq  xmm0, xmm0, xmm0
-        _vdivps  xmm1, xmm1, xmm0
-        _vmulps  xmm2, xmm2, xmm0
-       _vmovaps  dqword[rdx + Variety.a_float], xmm0
-       _vmovaps  dqword[rdx + Variety.b_float], xmm1
-       _vmovaps  dqword[rdx + Variety.clamp], xmm2
-            lea  eax, [4*rax]
-            lea  ecx, [2*rax+1000]
-            mov  dword[rdx + Variety.a_bound], eax
-            mov  dword[rdx + Variety.b_bound], ecx
+  ClampUnsigned  eax, 0, 40
+            lea  ecx, [rax+1]
+            mov  dword[options.varietyMod], ecx
+            mov  ecx, -PawnValueEg
+           imul  ecx
+            mov  ecx, 100
+           idiv  ecx
+            mov  dword[options.varietyBound], eax
             jmp  UciGetInput
-
-          align  16
-.two:     dd -2.0, -2.0, -2.0, -2.0
-.epsilon: dd -0.9999997, -0.9999997, -0.9999997, -0.9999997
 end if
 
 
@@ -1250,7 +1238,6 @@ end if
             mov  qword[UciLoop.extra + 8*0], r13
             mov  qword[UciLoop.extra + 8*1], r15
             mov  qword[UciLoop.extra + 8*2], rax
-            mov  qword[UciLoop.extra + 8*3], r14
             lea  rcx, [sz_format_bench2]
             lea  rdx, [UciLoop.extra]
             xor  r8, r8
